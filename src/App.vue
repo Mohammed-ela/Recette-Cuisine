@@ -1,85 +1,113 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div id="app">
+    <header>
+      <!-- mvp css -->
+      <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    </header>
+    <main>
+      <h1>Mes recettes</h1>
+      <form @submit.prevent="addRecipe">
+        <label for="nom">Nom de la recette :</label>
+        <input type="text" id="nom" v-model="newRecipe.nom" required>
+        
+        <label for="ingredients">Ingrédients :</label>
+        <textarea id="ingredients" v-model="newRecipe.ingredients" required></textarea>
+        
+        <label for="preparation">Préparation :</label>
+        <textarea id="preparation" v-model="newRecipe.preparation" required></textarea>
+        
+        <label for="temps">Temps de préparation (en min) :</label>
+        <input type="number" id="temps" v-model.number="newRecipe.temps" required>
+        
+        <label for="nombre">Nombre de personnes :</label>
+        <input type="number" id="nombre" v-model.number="newRecipe.nombre" required>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+        <!-- Div messages d'erreur -->
+        <div class="error" v-if="error">{{ error }}</div>
+        
+        <button type="submit">Ajouter la recette</button>
+      </form>
+      
+      <ul>
+        <li v-for="recipe in recipes" :key="recipe.id">
+          <h2>{{ recipe.nom }}</h2>
+          <p><strong>Ingrédients :</strong> {{ recipe.ingredients }}</p>
+          <p><strong>Préparation :</strong> {{ recipe.preparation }}</p>
+          <p><strong>Temps de préparation :</strong> {{ recipe.temps }} minutes</p>
+          <p><strong>Nombre de personnes :</strong> {{ recipe.nombre }}</p>
+          <button @click="deleteRecipe(recipe.id)">Supprimer</button>
+        </li>
+      </ul>
+    </main>
+  </div>
 </template>
 
+<script>
+export default {
+  data() {
+    return {
+      newRecipe: {
+        id: null,
+        nom: '',
+        ingredients: '',
+        preparation: '',
+        temps: 0,
+        nombre: 0
+      },
+      recipes: [],
+      error: '' // msg d'erreur
+    };
+  },
+  mounted() {
+    // Récupérer les recettes depuis le localStorage lors du montage du composant
+    const recipesFromLocalStorage = localStorage.getItem('recipes');
+    if (recipesFromLocalStorage) {
+      this.recipes = JSON.parse(recipesFromLocalStorage);
+    }
+  },
+  methods: {
+    addRecipe() {
+      if (this.validateForm()) {
+        this.newRecipe.id = Date.now();
+        this.recipes.push({ ...this.newRecipe });
+        this.newRecipe = {
+          id: null,
+          nom: '',
+          ingredients: '',
+          preparation: '',
+          temps: 0,
+          nombre: 0
+        };
+        this.error = ''; // Rmet msg d'erreur vide
+        this.saveRecipesToLocalStorage();
+      } else {
+        this.error = 'Veuillez remplir tous les champs du formulaire.';
+      }
+    },
+    deleteRecipe(id) {
+      this.recipes = this.recipes.filter(recipe => recipe.id !== id);
+      this.saveRecipesToLocalStorage();
+    },
+    saveRecipesToLocalStorage() {
+      localStorage.setItem('recipes', JSON.stringify(this.recipes));
+    },
+    validateForm() {
+      return (
+        this.newRecipe.nom &&
+        this.newRecipe.ingredients &&
+        this.newRecipe.preparation &&
+        this.newRecipe.temps > 0 &&
+        this.newRecipe.nombre > 0
+      );
+    }
+  }
+};
+</script>
+
+<!-- style suplementaire -->
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.error {
+  color: red;
+  margin-bottom: 10px;
 }
 </style>
