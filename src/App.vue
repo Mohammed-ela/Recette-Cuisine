@@ -1,9 +1,4 @@
 <template>
-  <div id="app">
-    <header>
-      <!-- mvp css -->
-      <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-    </header>
     <main>
       <h1>Mes recettes</h1>
       <form @submit.prevent="addRecipe">
@@ -39,7 +34,6 @@
         </li>
       </ul>
     </main>
-  </div>
 </template>
 
 <script>
